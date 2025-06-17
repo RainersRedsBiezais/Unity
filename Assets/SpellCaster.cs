@@ -1,20 +1,132 @@
 using UnityEngine;
+using System.Collections;
 
 public class SpellCaster : MonoBehaviour
 {
     public GameObject spellPrefab;
     public Transform castPoint;
+    public GameObject vapeModel;
+    public float vapeDuration = 0.5f;
+    public float cooldownDuration = 1f;
+    public float vapeIntensity = 0.3f;
+    public float fireballSpeed = 20f;
+    public float castPointDistance = 0.5f; // Distance in front of the player
 
-    void Update()
+    private bool canCast = true;
+    private Vector3 originalVapePosition;
+    private Quaternion originalVapeRotation;
+    private Camera playerCamera;
+
+    void Start()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        Debug.Log("SpellCaster initialized");
+        playerCamera = GetComponentInChildren<Camera>();
+        
+        if (playerCamera == null)
         {
-            CastSpell();
+            Debug.LogError("No camera found in children of player!");
+            return;
+        }
+
+        // Create cast point if it doesn't exist
+        if (castPoint == null)
+        {
+            GameObject castPointObj = new GameObject("CastPoint");
+            castPoint = castPointObj.transform;
+            castPoint.parent = playerCamera.transform;
+            castPoint.localPosition = new Vector3(0, -0.2f, castPointDistance); // Position slightly below camera center
+            castPoint.localRotation = Quaternion.identity;
+        }
+
+        if (vapeModel != null)
+        {
+            originalVapePosition = vapeModel.transform.localPosition;
+            originalVapeRotation = vapeModel.transform.localRotation;
+        }
+        else
+        {
+            Debug.LogWarning("Vape model is not assigned!");
+        }
+
+        if (spellPrefab == null)
+        {
+            Debug.LogError("Spell prefab is not assigned!");
         }
     }
 
-    void CastSpell()
+    void Update()
     {
-        Instantiate(spellPrefab, castPoint.position, castPoint.rotation);
+        if (Input.GetMouseButtonDown(0) && canCast)
+        {
+            Debug.Log("Mouse button pressed, attempting to cast spell");
+            StartCoroutine(VapeAndCast());
+        }
+    }
+
+    IEnumerator VapeAndCast()
+    {
+        Debug.Log("Starting VapeAndCast coroutine");
+        canCast = false;
+
+        // Vaping animation
+        if (vapeModel != null)
+        {
+            // Move vape up slightly
+            Vector3 vapeUpPosition = originalVapePosition + Vector3.up * vapeIntensity;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < vapeDuration)
+            {
+                float t = elapsedTime / vapeDuration;
+                vapeModel.transform.localPosition = Vector3.Lerp(originalVapePosition, vapeUpPosition, t);
+                vapeModel.transform.localRotation = Quaternion.Lerp(originalVapeRotation, 
+                    originalVapeRotation * Quaternion.Euler(0, 0, 15f), t);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+
+            // Return vape to original position
+            elapsedTime = 0f;
+            while (elapsedTime < vapeDuration)
+            {
+                float t = elapsedTime / vapeDuration;
+                vapeModel.transform.localPosition = Vector3.Lerp(vapeUpPosition, originalVapePosition, t);
+                vapeModel.transform.localRotation = Quaternion.Lerp(
+                    originalVapeRotation * Quaternion.Euler(0, 0, 15f), 
+                    originalVapeRotation, t);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // Cast fireball from camera's mouth position in the direction the player is looking
+        Vector3 mouthOffset = playerCamera.transform.up * -0.2f; // Adjust for mouth height
+        Vector3 spawnPosition = playerCamera.transform.position + playerCamera.transform.forward * castPointDistance + mouthOffset;
+        Quaternion spawnRotation = Quaternion.LookRotation(playerCamera.transform.forward);
+        Debug.Log("Attempting to instantiate fireball at position: " + spawnPosition);
+        GameObject fireball = Instantiate(spellPrefab, spawnPosition, spawnRotation);
+        if (fireball == null)
+        {
+            Debug.LogError("Failed to instantiate fireball!");
+        }
+        else
+        {
+            Debug.Log("Fireball instantiated successfully");
+            Rigidbody rb = fireball.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = playerCamera.transform.forward * fireballSpeed;
+                Debug.Log("Fireball velocity set to: " + rb.linearVelocity);
+            }
+            else
+            {
+                Debug.LogError("Fireball has no Rigidbody component!");
+            }
+        }
+
+        // Cooldown
+        yield return new WaitForSeconds(cooldownDuration);
+        canCast = true;
+        Debug.Log("Spell cooldown finished");
     }
 }
