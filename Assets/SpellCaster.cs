@@ -3,7 +3,8 @@ using System.Collections;
 
 public class SpellCaster : MonoBehaviour
 {
-    public GameObject spellPrefab;
+    public GameObject fireballPrefab;
+    public GameObject flamethrowerPrefab;
     public Transform castPoint;
     public GameObject vapeModel;
     public float vapeDuration = 0.5f;
@@ -16,6 +17,8 @@ public class SpellCaster : MonoBehaviour
     private Vector3 originalVapePosition;
     private Quaternion originalVapeRotation;
     private Camera playerCamera;
+    private GameObject[] spellPrefabs;
+    private int currentSpellIndex = 0;
 
     void Start()
     {
@@ -48,14 +51,24 @@ public class SpellCaster : MonoBehaviour
             Debug.LogWarning("Vape model is not assigned!");
         }
 
-        if (spellPrefab == null)
+        if (fireballPrefab == null || flamethrowerPrefab == null)
         {
-            Debug.LogError("Spell prefab is not assigned!");
+            Debug.LogError("Spell prefabs are not assigned!");
         }
+
+        // Initialize spell prefabs array
+        spellPrefabs = new GameObject[2];
+        spellPrefabs[0] = fireballPrefab;
+        spellPrefabs[1] = flamethrowerPrefab;
     }
 
     void Update()
     {
+        // Spell selection (keys 1-2)
+        if (Input.GetKeyDown(KeyCode.Alpha1)) currentSpellIndex = 0;
+        if (Input.GetKeyDown(KeyCode.Alpha2)) currentSpellIndex = 1;
+        currentSpellIndex = Mathf.Clamp(currentSpellIndex, 0, spellPrefabs.Length - 1);
+
         if (Input.GetMouseButtonDown(0) && canCast)
         {
             Debug.Log("Mouse button pressed, attempting to cast spell");
@@ -98,19 +111,19 @@ public class SpellCaster : MonoBehaviour
             }
         }
 
-        // Cast fireball from camera's mouth position in the direction the player is looking
+        // Cast selected spell from camera's mouth position in the direction the player is looking
         Vector3 mouthOffset = playerCamera.transform.up * -0.1f; // Reduced downward offset
         Vector3 spawnPosition = playerCamera.transform.position + playerCamera.transform.forward * castPointDistance + mouthOffset;
         Quaternion spawnRotation = Quaternion.LookRotation(playerCamera.transform.forward);
-        Debug.Log("Attempting to instantiate fireball at position: " + spawnPosition);
-        GameObject fireball = Instantiate(spellPrefab, spawnPosition, spawnRotation);
-        if (fireball == null)
+        Debug.Log("Attempting to instantiate spell at position: " + spawnPosition);
+        GameObject spell = Instantiate(spellPrefabs[currentSpellIndex], spawnPosition, spawnRotation);
+        if (spell == null)
         {
-            Debug.LogError("Failed to instantiate fireball!");
+            Debug.LogError("Failed to instantiate spell!");
         }
         else
         {
-            Debug.Log("Fireball instantiated successfully");
+            Debug.Log("Spell instantiated successfully");
             // No need to set Rigidbody velocity; let the prefab handle its own movement
         }
 
@@ -118,5 +131,11 @@ public class SpellCaster : MonoBehaviour
         yield return new WaitForSeconds(cooldownDuration);
         canCast = true;
         Debug.Log("Spell cooldown finished");
+    }
+
+    // Public method to get current spell index for UI
+    public int GetCurrentSpellIndex()
+    {
+        return currentSpellIndex;
     }
 }
