@@ -10,7 +10,7 @@ public class SpellCaster : MonoBehaviour
     public float cooldownDuration = 1f;
     public float vapeIntensity = 0.3f;
     public float fireballSpeed = 20f;
-    public float castPointDistance = 0.5f; // Distance in front of the player
+    public float castPointDistance = 1.5f; // Increased distance in front of the player
 
     private bool canCast = true;
     private Vector3 originalVapePosition;
@@ -68,10 +68,9 @@ public class SpellCaster : MonoBehaviour
         Debug.Log("Starting VapeAndCast coroutine");
         canCast = false;
 
-        // Vaping animation
+        // Simple vaping animation: move vape up and rotate slightly
         if (vapeModel != null)
         {
-            // Move vape up slightly
             Vector3 vapeUpPosition = originalVapePosition + Vector3.up * vapeIntensity;
             float elapsedTime = 0f;
 
@@ -100,7 +99,7 @@ public class SpellCaster : MonoBehaviour
         }
 
         // Cast fireball from camera's mouth position in the direction the player is looking
-        Vector3 mouthOffset = playerCamera.transform.up * -0.2f; // Adjust for mouth height
+        Vector3 mouthOffset = playerCamera.transform.up * -0.1f; // Reduced downward offset
         Vector3 spawnPosition = playerCamera.transform.position + playerCamera.transform.forward * castPointDistance + mouthOffset;
         Quaternion spawnRotation = Quaternion.LookRotation(playerCamera.transform.forward);
         Debug.Log("Attempting to instantiate fireball at position: " + spawnPosition);
@@ -112,16 +111,7 @@ public class SpellCaster : MonoBehaviour
         else
         {
             Debug.Log("Fireball instantiated successfully");
-            Rigidbody rb = fireball.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.linearVelocity = playerCamera.transform.forward * fireballSpeed;
-                Debug.Log("Fireball velocity set to: " + rb.linearVelocity);
-            }
-            else
-            {
-                Debug.LogError("Fireball has no Rigidbody component!");
-            }
+            // No need to set Rigidbody velocity; let the prefab handle its own movement
         }
 
         // Cooldown

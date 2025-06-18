@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8308677689679267645}
   - component: {fileID: 2575556549047222192}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CastPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,10 +44,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 630d202827b9b5c47b3430366249c0a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spellPrefab: {fileID: 7120776877748049860, guid: 56183f8769ca034489d1082727b834b6, type: 3}
+  spellPrefab: {fileID: 121802, guid: 8f18e1d8c46c51f429429815455062fc, type: 3}
   castPoint: {fileID: 8308677689679267645}
   vapeModel: {fileID: 0}
   vapeDuration: 0.5
   cooldownDuration: 1
   vapeIntensity: 0.3
   fireballSpeed: 20
+  castPointDistance: 0.5

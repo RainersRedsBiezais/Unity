@@ -4,8 +4,8 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - spellPrefab: {fileID: 7120776877748049860, guid: 56183f8769ca034489d1082727b834b6, type: 3}
-  - castPoint: {fileID: 2916636789087121355, guid: 46817f4d35856c1478a63a3f36fef4d3, type: 3}
+  - spellPrefab: {fileID: 121802, guid: 8f18e1d8c46c51f429429815455062fc, type: 3}
+  - castPoint: {instanceID: 0}
   - vapeModel: {fileID: 919132149155446097, guid: 15214115b7297ce4580123a69d99ddfb, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
