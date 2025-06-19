@@ -24,22 +24,39 @@ public class SkeletonSpawner : MonoBehaviour
 
     void SpawnSkeleton()
     {
-    Vector2 circle = Random.insideUnitCircle.normalized * spawnRadius;
-    Vector3 spawnPos = new Vector3(circle.x, 20, circle.y) + target.position; // Start high above the ground
-
-    RaycastHit hit;
-    if (Physics.Raycast(spawnPos, Vector3.down, out hit, 100f, groundLayer))
-    {
-        spawnPos = hit.point;
-        GameObject skeleton = Instantiate(skeletonPrefab, spawnPos, Quaternion.identity);
-        SkeletonAI ai = skeleton.GetComponent<SkeletonAI>();
-        if (ai != null)
+        for (int attempts = 0; attempts < 10; attempts++) // Try up to 10 times to find a clear spot
         {
-            ai.SetTarget(target);
+            Vector2 circle = Random.insideUnitCircle.normalized * spawnRadius;
+            Vector3 spawnPos = new Vector3(circle.x, 20, circle.y) + target.position; // Start high above the ground
+
+            RaycastHit hit;
+            if (Physics.Raycast(spawnPos, Vector3.down, out hit, 100f, groundLayer))
+            {
+                spawnPos = hit.point;
+
+                float checkRadius = 1.0f;
+                float checkHeight = 4.0f;
+                int steps = 4;
+                bool blocked = false;
+                for (int i = 0; i < steps; i++)
+                {
+                    Vector3 pos = spawnPos + Vector3.up * (i * (checkHeight / steps));
+                    if (Physics.OverlapSphere(pos, checkRadius, LayerMask.GetMask("Tree")).Length > 0)
+                    {
+                        blocked = true;
+                        Debug.Log("Blocked by tree at height: " + pos);
+                        break;
+                    }
+                }
+                if (!blocked)
+                {
+                    Instantiate(skeletonPrefab, spawnPos, Quaternion.identity);
+                    currentSkeletons++;
+                    return; // Successfully spawned, exit the function
+                }
+            }
         }
-        currentSkeletons++;
-    }
-    // else: did not hit ground, do not spawn
+        // If we get here, we failed to find a clear spot after 10 tries
     }
 
     public void OnSkeletonDestroyed()
