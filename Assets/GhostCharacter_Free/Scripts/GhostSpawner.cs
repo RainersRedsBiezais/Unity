@@ -5,7 +5,8 @@ public class GhostSpawner : MonoBehaviour
 {
     public GameObject ghostPrefab;
     public float spawnInterval = 5f;
-    public float spawnRadius = 10f;
+    public float minSpawnDistance = 20f; // Increased minimum distance from blacksmith
+    public float maxSpawnDistance = 30f; // Increased maximum spawn distance
     public Transform target;
     private bool isSpawning = true;
 
@@ -42,9 +43,23 @@ public class GhostSpawner : MonoBehaviour
     {
         if (ghostPrefab == null || target == null) return;
 
-        // Get random point in circle
-        Vector2 randomPoint = Random.insideUnitCircle * spawnRadius;
-        Vector3 spawnPosition = new Vector3(randomPoint.x, 0, randomPoint.y) + target.position;
+        // Get random angle
+        float randomAngle = Random.Range(0f, 360f);
+        // Get random distance between min and max
+        float randomDistance = Random.Range(minSpawnDistance, maxSpawnDistance);
+        
+        // Convert polar coordinates to Cartesian
+        float x = Mathf.Cos(randomAngle * Mathf.Deg2Rad) * randomDistance;
+        float z = Mathf.Sin(randomAngle * Mathf.Deg2Rad) * randomDistance;
+        
+        Vector3 spawnPosition = target.position + new Vector3(x, 0, z);
+
+        // Check if spawn position is valid (you might want to add NavMesh checking here)
+        RaycastHit hit;
+        if (Physics.Raycast(spawnPosition + Vector3.up * 10f, Vector3.down, out hit, 20f))
+        {
+            spawnPosition.y = hit.point.y;
+        }
 
         // Instantiate ghost
         GameObject ghost = Instantiate(ghostPrefab, spawnPosition, Quaternion.identity);
@@ -55,15 +70,21 @@ public class GhostSpawner : MonoBehaviour
         {
             ghostAI.target = target;
         }
+        
+        Debug.Log($"Spawned ghost at distance {Vector3.Distance(spawnPosition, target.position)} from target");
     }
 
     void OnDrawGizmosSelected()
     {
         if (target != null)
         {
-            // Draw spawn radius
+            // Draw min spawn radius
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(target.position, minSpawnDistance);
+            
+            // Draw max spawn radius
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(target.position, spawnRadius);
+            Gizmos.DrawWireSphere(target.position, maxSpawnDistance);
         }
     }
 }
