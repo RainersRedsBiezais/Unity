@@ -4,8 +4,9 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - spellPrefab: {fileID: 121802, guid: 8f18e1d8c46c51f429429815455062fc, type: 3}
-  - castPoint: {instanceID: 0}
+  - fireballPrefab: {fileID: 121802, guid: 8f18e1d8c46c51f429429815455062fc, type: 3}
+  - flamethrowerPrefab: {fileID: 165786, guid: d7b50f004cdc74b409188d8b822292fc, type: 3}
+  - castPoint: {fileID: 8308677689679267645, guid: cc7c72bcc5552b246b9e9ee2d1a473d7, type: 3}
   - vapeModel: {fileID: 919132149155446097, guid: 15214115b7297ce4580123a69d99ddfb, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}

@@ -81,6 +81,26 @@ public class SpellCaster : MonoBehaviour
         Debug.Log("Starting VapeAndCast coroutine");
         canCast = false;
 
+        // Defensive null checks
+        if (playerCamera == null)
+        {
+            Debug.LogError("Player camera is not assigned!");
+            canCast = true;
+            yield break;
+        }
+        if (spellPrefabs == null || spellPrefabs.Length == 0)
+        {
+            Debug.LogError("Spell prefabs array is not initialized!");
+            canCast = true;
+            yield break;
+        }
+        if (currentSpellIndex < 0 || currentSpellIndex >= spellPrefabs.Length || spellPrefabs[currentSpellIndex] == null)
+        {
+            Debug.LogError("Selected spell prefab is not assigned!");
+            canCast = true;
+            yield break;
+        }
+
         // Simple vaping animation: move vape up and rotate slightly
         if (vapeModel != null)
         {

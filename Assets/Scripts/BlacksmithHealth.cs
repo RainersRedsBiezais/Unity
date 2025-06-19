@@ -1,14 +1,13 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class BlacksmithHealth : MonoBehaviour
 {
-    public int maxHealth = 200;
-    private int currentHealth;
+    public int maxHealth = 100;
+    public int currentHealth;
+    public UnityEvent onDeath;
 
-    public delegate void BlacksmithDestroyed();
-    public event BlacksmithDestroyed OnBlacksmithDestroyed;
-
-    void Start()
+    void Awake()
     {
         currentHealth = maxHealth;
     }
@@ -19,9 +18,8 @@ public class BlacksmithHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             currentHealth = 0;
-            if (OnBlacksmithDestroyed != null)
-                OnBlacksmithDestroyed();
-            Destroy(gameObject);
+            if (onDeath != null)
+                onDeath.Invoke();
         }
     }
-} 
+}

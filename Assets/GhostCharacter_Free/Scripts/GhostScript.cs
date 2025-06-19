@@ -31,7 +31,9 @@ public class GhostScript : MonoBehaviour
     {
         Anim = this.GetComponent<Animator>();
         Ctrl = this.GetComponent<CharacterController>();
-        HP_text = GameObject.Find("Canvas/HP").GetComponent<Text>();
+        var hpObj = GameObject.Find("Canvas/HP");
+        if (hpObj != null)
+            HP_text = hpObj.GetComponent<Text>();
         HP_text.text = "HP " + HP.ToString();
     }
 
