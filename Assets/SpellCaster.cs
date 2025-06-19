@@ -11,7 +11,7 @@ public class SpellCaster : MonoBehaviour
     public float cooldownDuration = 1f;
     public float vapeIntensity = 0.3f;
     public float fireballSpeed = 20f;
-    public float castPointDistance = 1.5f; // Increased distance in front of the player
+    public float castPointDistance = 1.5f;
 
     private bool canCast = true;
     private Vector3 originalVapePosition;
@@ -34,10 +34,11 @@ public class SpellCaster : MonoBehaviour
         // Create cast point if it doesn't exist
         if (castPoint == null)
         {
+            Debug.Log("Creating new cast point");
             GameObject castPointObj = new GameObject("CastPoint");
             castPoint = castPointObj.transform;
             castPoint.parent = playerCamera.transform;
-            castPoint.localPosition = new Vector3(0, -0.2f, castPointDistance); // Position slightly below camera center
+            castPoint.localPosition = new Vector3(0, -0.2f, castPointDistance);
             castPoint.localRotation = Quaternion.identity;
         }
 
@@ -51,22 +52,33 @@ public class SpellCaster : MonoBehaviour
             Debug.LogWarning("Vape model is not assigned!");
         }
 
-        if (fireballPrefab == null || flamethrowerPrefab == null)
+        if (fireballPrefab == null)
         {
-            Debug.LogError("Spell prefabs are not assigned!");
+            Debug.LogError("Fireball prefab is not assigned!");
+        }
+        if (flamethrowerPrefab == null)
+        {
+            Debug.LogError("Flamethrower prefab is not assigned!");
         }
 
         // Initialize spell prefabs array
-        spellPrefabs = new GameObject[2];
-        spellPrefabs[0] = fireballPrefab;
-        spellPrefabs[1] = flamethrowerPrefab;
+        spellPrefabs = new GameObject[] { fireballPrefab, flamethrowerPrefab };
+        Debug.Log($"Initialized with {spellPrefabs.Length} spells");
     }
 
     void Update()
     {
         // Spell selection (keys 1-2)
-        if (Input.GetKeyDown(KeyCode.Alpha1)) currentSpellIndex = 0;
-        if (Input.GetKeyDown(KeyCode.Alpha2)) currentSpellIndex = 1;
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            currentSpellIndex = 0;
+            Debug.Log("Switched to Fireball");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            currentSpellIndex = 1;
+            Debug.Log("Switched to Flamethrower");
+        }
         currentSpellIndex = Mathf.Clamp(currentSpellIndex, 0, spellPrefabs.Length - 1);
 
         if (Input.GetMouseButtonDown(0) && canCast)
@@ -96,7 +108,7 @@ public class SpellCaster : MonoBehaviour
         }
         if (currentSpellIndex < 0 || currentSpellIndex >= spellPrefabs.Length || spellPrefabs[currentSpellIndex] == null)
         {
-            Debug.LogError("Selected spell prefab is not assigned!");
+            Debug.LogError($"Selected spell prefab ({currentSpellIndex}) is not assigned!");
             canCast = true;
             yield break;
         }
@@ -132,10 +144,11 @@ public class SpellCaster : MonoBehaviour
         }
 
         // Cast selected spell from camera's mouth position in the direction the player is looking
-        Vector3 mouthOffset = playerCamera.transform.up * -0.1f; // Reduced downward offset
+        Vector3 mouthOffset = playerCamera.transform.up * -0.1f;
         Vector3 spawnPosition = playerCamera.transform.position + playerCamera.transform.forward * castPointDistance + mouthOffset;
         Quaternion spawnRotation = Quaternion.LookRotation(playerCamera.transform.forward);
-        Debug.Log("Attempting to instantiate spell at position: " + spawnPosition);
+        Debug.Log($"Attempting to instantiate spell at position: {spawnPosition}");
+        
         GameObject spell = Instantiate(spellPrefabs[currentSpellIndex], spawnPosition, spawnRotation);
         if (spell == null)
         {
@@ -143,8 +156,13 @@ public class SpellCaster : MonoBehaviour
         }
         else
         {
-            Debug.Log("Spell instantiated successfully");
-            // No need to set Rigidbody velocity; let the prefab handle its own movement
+            Debug.Log($"Spell {spellPrefabs[currentSpellIndex].name} instantiated successfully");
+            Rigidbody rb = spell.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = playerCamera.transform.forward * fireballSpeed;
+                Debug.Log($"Set spell velocity to {rb.linearVelocity}");
+            }
         }
 
         // Cooldown
@@ -153,7 +171,6 @@ public class SpellCaster : MonoBehaviour
         Debug.Log("Spell cooldown finished");
     }
 
-    // Public method to get current spell index for UI
     public int GetCurrentSpellIndex()
     {
         return currentSpellIndex;

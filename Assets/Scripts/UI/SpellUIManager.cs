@@ -35,12 +35,10 @@ public class SpellUIManager : MonoBehaviour
 
     void Start()
     {
-        // Find the SpellCaster in the scene
-        spellCaster = FindObjectOfType<SpellCaster>();
-        
+        spellCaster = FindFirstObjectByType<SpellCaster>();
         if (spellCaster == null)
         {
-            Debug.LogError("SpellCaster not found in scene!");
+            Debug.LogError("SpellCaster not found!");
             return;
         }
 
@@ -89,11 +87,15 @@ public class SpellUIManager : MonoBehaviour
 
     void UpdateSpellUI()
     {
+        if (spellCaster == null || spellSlots == null) return;
+
+        int currentSpell = spellCaster.GetCurrentSpellIndex();
+        
         for (int i = 0; i < spellSlots.Length; i++)
         {
             if (spellSlots[i] != null)
             {
-                bool isSelected = (i == currentSpellIndex);
+                bool isSelected = (i == currentSpell);
                 
                 // Update background color
                 if (spellSlots[i].background != null)

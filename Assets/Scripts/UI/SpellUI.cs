@@ -6,23 +6,20 @@ public class SpellUI : MonoBehaviour
     [Header("Spell Slot UI")]
     public Image[] spellSlotImages; // Array of UI images for spell slots
     public Color selectedColor = Color.white; // Color for selected spell
-    public Color unselectedColor = new Color(0.5f, 0.5f, 0.5f, 0.7f); // Color for unselected spells
+    public Color unselectedColor = new Color(0.5f, 0.5f, 0.5f, 0.5f); // Color for unselected spells
     
     [Header("Spell Icons")]
     public Sprite fireballIcon; // Assign fireball icon sprite
     public Sprite flamethrowerIcon; // Assign flamethrower icon sprite
     
     private SpellCaster spellCaster;
-    private int currentSpellIndex = 0;
 
     void Start()
     {
-        // Find the SpellCaster in the scene
-        spellCaster = FindObjectOfType<SpellCaster>();
-        
+        spellCaster = FindFirstObjectByType<SpellCaster>();
         if (spellCaster == null)
         {
-            Debug.LogError("SpellCaster not found in scene!");
+            Debug.LogError("SpellCaster not found!");
             return;
         }
 
@@ -39,28 +36,20 @@ public class SpellUI : MonoBehaviour
 
     void Update()
     {
-        // Check if spell selection changed
-        if (spellCaster != null)
-        {
-            // Get current spell index from SpellCaster (you'll need to make this public)
-            int newSpellIndex = spellCaster.GetCurrentSpellIndex();
-            
-            if (newSpellIndex != currentSpellIndex)
-            {
-                currentSpellIndex = newSpellIndex;
-                UpdateSpellUI();
-            }
-        }
+        UpdateSpellUI();
     }
 
     void UpdateSpellUI()
     {
+        if (spellCaster == null || spellSlotImages == null) return;
+
+        int currentSpell = spellCaster.GetCurrentSpellIndex();
+        
         for (int i = 0; i < spellSlotImages.Length; i++)
         {
             if (spellSlotImages[i] != null)
             {
-                // Highlight selected spell, dim others
-                spellSlotImages[i].color = (i == currentSpellIndex) ? selectedColor : unselectedColor;
+                spellSlotImages[i].color = i == currentSpell ? selectedColor : unselectedColor;
             }
         }
     }

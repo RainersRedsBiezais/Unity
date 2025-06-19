@@ -3,55 +3,74 @@ using UnityEngine.AI;
 
 public class GhostAI : MonoBehaviour
 {
+    public Transform target;
     public float attackRange = 2f;
     public float attackCooldown = 1.5f;
-    private float lastAttackTime;
-    private Transform target;
     private NavMeshAgent agent;
+    private Animator animator;
+    private float nextAttackTime;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        GameObject blacksmith = GameObject.FindGameObjectWithTag("Blacksmith");
-        if (blacksmith != null)
+        animator = GetComponent<Animator>();
+
+        if (target == null)
         {
-            target = blacksmith.transform;
+            var blacksmith = FindFirstObjectByType<BlacksmithHealth>();
+            if (blacksmith != null)
+            {
+                target = blacksmith.transform;
+            }
+            else
+            {
+                Debug.LogError("No target found for ghost to chase!");
+            }
         }
     }
 
     void Update()
     {
-        if (target == null) return;
+        if (target == null || agent == null) return;
 
-        float distance = Vector3.Distance(transform.position, target.position);
+        // Update destination
+        agent.SetDestination(target.position);
 
-        if (distance > attackRange)
+        // Check if in attack range
+        float distanceToTarget = Vector3.Distance(transform.position, target.position);
+        if (distanceToTarget <= attackRange && Time.time >= nextAttackTime)
         {
-            // Move towards the target
-            agent.isStopped = false;
-            agent.SetDestination(target.position);
+            Attack();
         }
-        else
+
+        // Update animation
+        if (animator != null)
         {
-            // Attack
-            agent.isStopped = true;
-            if (Time.time - lastAttackTime > attackCooldown)
-            {
-                Attack();
-                lastAttackTime = Time.time;
-            }
+            animator.SetBool("isMoving", agent.velocity.magnitude > 0.1f);
         }
     }
 
     void Attack()
-{
-    if (target != null)
     {
-        BlacksmithHealth health = target.GetComponent<BlacksmithHealth>();
-        if (health != null)
+        nextAttackTime = Time.time + attackCooldown;
+        
+        if (animator != null)
         {
-            health.TakeDamage(10); // Deal 10 damage per attack
+            animator.SetTrigger("attack");
+        }
+
+        // Deal damage to target
+        BlacksmithHealth blacksmith = target.GetComponent<BlacksmithHealth>();
+        if (blacksmith != null)
+        {
+            blacksmith.TakeDamage(10);
         }
     }
-}
+
+    void OnDrawGizmosSelected()
+    {
+        // Draw attack range
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+    }
 }

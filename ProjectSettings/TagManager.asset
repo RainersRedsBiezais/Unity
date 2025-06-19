@@ -7,6 +7,7 @@ TagManager:
   - Fire
   - Spell
   - Blacksmith
+  - Ghost
   layers:
   - Default
   - TransparentFX
@@ -14,7 +15,7 @@ TagManager:
   - Player
   - Water
   - UI
-  - Spell
+  - Enemy
   - Tree
   - FireLayer
   - Walkable

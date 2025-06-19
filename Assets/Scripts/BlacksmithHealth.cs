@@ -4,7 +4,8 @@ using UnityEngine.Events;
 public class BlacksmithHealth : MonoBehaviour
 {
     public int maxHealth = 100;
-    public int currentHealth;
+    private int currentHealth;
+    private bool isDead = false;
     public UnityEvent onDeath;
     public GameObject damageNumberPrefab;
     public Canvas uiCanvas; // Assign your main UI canvas here
@@ -17,18 +18,28 @@ public class BlacksmithHealth : MonoBehaviour
             gameOverPanel.SetActive(false);
     }
 
-    public void TakeDamage(int amount)
+    void Start()
     {
-        currentHealth -= amount;
-        ShowDamageNumber(amount);
+        currentHealth = maxHealth;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (isDead) return;
+
+        currentHealth -= damage;
+        ShowDamageNumber(damage);
+        Debug.Log($"Blacksmith took {damage} damage. Current health: {currentHealth}");
 
         if (currentHealth <= 0)
         {
+            isDead = true;
             currentHealth = 0;
             if (onDeath != null)
                 onDeath.Invoke();
             if (gameOverPanel != null)
                 gameOverPanel.SetActive(true);
+            Die();
         }
     }
 
@@ -54,5 +65,21 @@ public class BlacksmithHealth : MonoBehaviour
         {
             Debug.LogWarning("DamageNumberPrefab or UiCanvas is not assigned!");
         }
+    }
+
+    void Die()
+    {
+        Debug.Log("Blacksmith has died!");
+        // Add any death effects or game over logic here
+    }
+
+    public bool IsAlive()
+    {
+        return !isDead;
+    }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
     }
 }

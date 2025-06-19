@@ -1,45 +1,69 @@
 using UnityEngine;
-using UnityEngine.AI;
+using System.Collections;
 
 public class GhostSpawner : MonoBehaviour
 {
     public GameObject ghostPrefab;
-    public int numberOfGhosts = 5;
-    private GhostSpawnPoint[] spawnPoints;
-
-    void Awake()
-    {
-        spawnPoints = FindObjectsOfType<GhostSpawnPoint>();
-    }
+    public float spawnInterval = 5f;
+    public float spawnRadius = 10f;
+    public Transform target;
+    private bool isSpawning = true;
 
     void Start()
     {
-        for (int i = 0; i < numberOfGhosts; i++)
+        if (target == null)
+        {
+            // Find the blacksmith if target is not set
+            var blacksmith = FindFirstObjectByType<BlacksmithHealth>();
+            if (blacksmith != null)
+            {
+                target = blacksmith.transform;
+            }
+            else
+            {
+                Debug.LogError("No target found for ghosts to chase!");
+                return;
+            }
+        }
+
+        StartCoroutine(SpawnGhosts());
+    }
+
+    IEnumerator SpawnGhosts()
+    {
+        while (isSpawning)
         {
             SpawnGhost();
+            yield return new WaitForSeconds(spawnInterval);
         }
     }
 
-    public void SpawnGhost()
+    void SpawnGhost()
     {
-        if (spawnPoints.Length == 0)
-        {
-            Debug.LogWarning("No GhostSpawnPoints found in the scene!");
-            return;
-        }
+        if (ghostPrefab == null || target == null) return;
 
-        GhostSpawnPoint chosenPoint = spawnPoints[Random.Range(0, spawnPoints.Length)];
-        Vector3 sourcePosition = chosenPoint.transform.position;
-        NavMeshHit closestHit;
+        // Get random point in circle
+        Vector2 randomPoint = Random.insideUnitCircle * spawnRadius;
+        Vector3 spawnPosition = new Vector3(randomPoint.x, 0, randomPoint.y) + target.position;
 
-        // Try to find the nearest NavMesh point within 5 units
-        if (NavMesh.SamplePosition(sourcePosition, out closestHit, 5.0f, NavMesh.AllAreas))
+        // Instantiate ghost
+        GameObject ghost = Instantiate(ghostPrefab, spawnPosition, Quaternion.identity);
+        
+        // Set up ghost AI
+        GhostAI ghostAI = ghost.GetComponent<GhostAI>();
+        if (ghostAI != null)
         {
-            Instantiate(ghostPrefab, closestHit.position, Quaternion.identity);
+            ghostAI.target = target;
         }
-        else
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        if (target != null)
         {
-            Debug.LogWarning("Could not find NavMesh close to spawn point: " + sourcePosition);
+            // Draw spawn radius
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(target.position, spawnRadius);
         }
     }
 }
